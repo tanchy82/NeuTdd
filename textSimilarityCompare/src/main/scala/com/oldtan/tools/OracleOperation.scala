@@ -1,4 +1,4 @@
-package com.oldtan
+package com.oldtan.tools
 
 import java.sql.{Connection, DriverManager, ResultSet}
 
@@ -28,7 +28,7 @@ object OracleOperation extends LazyLogging {
 case class OracleOperation(conn: Option[Connection]) extends LazyLogging{
 
   @throws("Due to the Oracle database execute sql error!")
-  def executeQuerySql(sql: String)(implicit objs: AnyVal *): mutable.ListBuffer[Map[String, String]] = {
+  def executeQuerySql(sql: String)(implicit objs: AnyVal *): List[Map[String, String]] = {
     val psFun = (con: Connection) => con prepareStatement sql
     val ps = psFun(conn.get)
     (0 until objs.size).foreach(i => ps.setObject(i+1, objs(i)))
@@ -42,7 +42,7 @@ case class OracleOperation(conn: Option[Connection]) extends LazyLogging{
       records += (1 to r.getMetaData.getColumnCount).toIterator.map(i => (r.getMetaData.getColumnName(i), r getString i)).toMap
     })
     ps.close
-    records
+    records.toList
   }
 
   @throws("Due to the Oracle database close error!")
