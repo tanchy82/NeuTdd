@@ -2,24 +2,30 @@ package com.oldtan
 
 import java.sql.{Connection, DriverManager, ResultSet}
 
+import com.typesafe.scalalogging.LazyLogging
+
 import scala.collection.mutable
 
 /**
   * Oracle Sql Operation Common Tools
   */
-object OracleOperation {
+object OracleOperation extends LazyLogging {
 
   private var conn: Option[Connection] = None
 
   @throws("Due to the Oracle database connect error!")
-  def openConnection = {
+  def openConnection: OracleOperation = {
     val yamlConfig = YamlConfig.load
     val DB_URL = yamlConfig.dbConn_url
     val USER = yamlConfig.dbConn_name
     val PASS = yamlConfig.dbConn_password
     Class forName "oracle.jdbc.driver.OracleDriver"
     conn = Option(DriverManager.getConnection(DB_URL, USER, PASS))
+    logger.info("Get database connection sucessful.")
+    OracleOperation(conn)
   }
+}
+case class OracleOperation(conn: Option[Connection]) extends LazyLogging{
 
   @throws("Due to the Oracle database execute sql error!")
   def executeQuerySql(sql: String)(implicit objs: AnyVal *): mutable.ListBuffer[Map[String, String]] = {
@@ -43,5 +49,4 @@ object OracleOperation {
   def closeConnection = {
     conn.foreach(_ close)
   }
-
 }

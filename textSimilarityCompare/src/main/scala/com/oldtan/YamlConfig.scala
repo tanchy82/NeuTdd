@@ -1,13 +1,17 @@
 package com.oldtan
 
 import java.util
+
+import com.typesafe.scalalogging.LazyLogging
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.Constructor
+
 import scala.io.Source
 
-object YamlConfig{
+object YamlConfig extends LazyLogging{
   def load: YamlConfig = new Yaml(new Constructor(classOf[YamlConfig]))
     .load(Source.fromResource("application.yml").bufferedReader).asInstanceOf[YamlConfig]
+  logger.info("Load application.yml file sucessful.")
 }
 
 import scala.beans.BeanProperty

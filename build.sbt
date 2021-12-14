@@ -20,12 +20,10 @@ lazy val commonSettings = Seq(
     "org.apache.flink" %% "flink-scala" % flinkVersion,
     "org.apache.flink" %% "flink-streaming-scala" % flinkVersion,
     "org.apache.flink" %% "flink-clients" % flinkVersion,
-    "org.apache.logging.log4j" % "log4j-core" % log4jVersion % Runtime,
-    "org.apache.logging.log4j" % "log4j-api" % log4jVersion % Runtime,
-    "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4jVersion % Runtime,
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
+    "org.yaml" % "snakeyaml" % "1.29",
     "info.debatty" % "java-string-similarity" % "2.0.0",
-    "com.oracle.database.jdbc" % "ojdbc8" % "12.2.0.1",
-    "org.yaml" % "snakeyaml" % "1.29"
+    "com.oracle.database.jdbc" % "ojdbc8" % "12.2.0.1"
   )
 )
 

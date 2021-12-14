@@ -19,8 +19,8 @@ object TextSimilarityCompareStreamJob extends App {
   val yamlConfig = YamlConfig.load
 
   val sql = """SELECT pkid,documentcode,itemtitle,itemvalue FROM emr_common_struct where length(itemvalue) > 32 and rownum > 0 and rownum <= 10"""
-  OracleOperation.openConnection
-  val records = OracleOperation.executeQuerySql(sql)()
-  OracleOperation.closeConnection
+  val conn = OracleOperation.openConnection
+  val records = conn.executeQuerySql(sql)()
+  conn.closeConnection
   println(records.size)
 }
