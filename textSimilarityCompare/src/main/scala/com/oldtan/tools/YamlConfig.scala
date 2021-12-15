@@ -2,16 +2,16 @@ package com.oldtan.tools
 
 import java.util
 
-import com.typesafe.scalalogging.LazyLogging
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.Constructor
 
 import scala.io.Source
 
-object YamlConfig extends LazyLogging{
+object YamlConfig {
+
   def load: YamlConfig = new Yaml(new Constructor(classOf[YamlConfig]))
-    .load(Source.fromResource("application.yml").bufferedReader).asInstanceOf[YamlConfig]
-  logger.info("Load application.yml file sucessful.")
+    //.load(Source.fromFile("/home/tanchy/software/IdeaProjects/NeuTdd/textSimilarityCompare/src/main/resource/application.yml").bufferedReader).asInstanceOf[YamlConfig]
+    .load(Source.fromFile("/home/flink-1.13.3/mytask/conf/application.yml").bufferedReader).asInstanceOf[YamlConfig]
 }
 
 import scala.beans.BeanProperty

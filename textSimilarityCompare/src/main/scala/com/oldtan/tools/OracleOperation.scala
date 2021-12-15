@@ -2,14 +2,12 @@ package com.oldtan.tools
 
 import java.sql.{Connection, DriverManager, ResultSet}
 
-import com.typesafe.scalalogging.LazyLogging
-
 import scala.collection.mutable
 
 /**
   * Oracle Sql Operation Common Tools
   */
-object OracleOperation extends LazyLogging {
+object OracleOperation  {
 
   private var conn: Option[Connection] = None
 
@@ -21,17 +19,16 @@ object OracleOperation extends LazyLogging {
     val PASS = yamlConfig.dbConn_password
     Class forName "oracle.jdbc.driver.OracleDriver"
     conn = Option(DriverManager.getConnection(DB_URL, USER, PASS))
-    logger.info("Get database connection sucessful.")
     OracleOperation(conn)
   }
 }
-case class OracleOperation(conn: Option[Connection]) extends LazyLogging{
+case class OracleOperation(conn: Option[Connection]){
 
   @throws("Due to the Oracle database execute sql error!")
   def executeQuerySql(sql: String)(implicit objs: AnyVal *): List[Map[String, String]] = {
     val psFun = (con: Connection) => con prepareStatement sql
     val ps = psFun(conn.get)
-    (0 until objs.size).foreach(i => ps.setObject(i+1, objs(i)))
+    (0 until objs.length).foreach(i => ps.setObject(i+1, objs(i)))
     val rSet = ps.executeQuery
     val metaCols = rSet.getMetaData
     val records = mutable.ListBuffer.empty[Map[String, String]]
@@ -39,7 +36,7 @@ case class OracleOperation(conn: Option[Connection]) extends LazyLogging{
       def hasNext = rSet next
       def next = rSet
     }.toStream.foreach(r => {
-      records += (1 to r.getMetaData.getColumnCount).toIterator.map(i => (r.getMetaData.getColumnName(i), r getString i)).toMap
+      records += (1 to metaCols.getColumnCount).map(i => (metaCols.getColumnName(i).toLowerCase, r getString i)).toMap
     })
     ps.close
     records.toList
