@@ -1,0 +1,8 @@
+dbConn:
+  url: jdbc:oracle:thin:@//10.101.37.145:1521/phispdb
+  name: phis_emr
+  password: phis_emr
+
+startDate: 2020-10-05
+writeFileDir: /oracle/flink_temp/
+#writeFileDir: /home/tanchy/software/IdeaProjects/NeuTdd/textSimilarityCompare/src/main/resources/

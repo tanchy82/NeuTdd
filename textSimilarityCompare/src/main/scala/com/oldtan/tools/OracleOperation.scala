@@ -25,7 +25,7 @@ object OracleOperation  {
 case class OracleOperation(conn: Option[Connection]){
 
   @throws("Due to the Oracle database execute sql error!")
-  def executeQuerySql(sql: String)(implicit objs: AnyVal *): List[Map[String, String]] = {
+  def executeQuerySql(sql: String)(implicit objs: Any *): List[Map[String, String]] = {
     val psFun = (con: Connection) => con prepareStatement sql
     val ps = psFun(conn.get)
     (0 until objs.length).foreach(i => ps.setObject(i+1, objs(i)))

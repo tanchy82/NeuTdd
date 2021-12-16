@@ -1,31 +1,32 @@
 package com.oldtan.source
 
-import com.oldtan.tools.OracleOperation
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+
+import com.oldtan.tools.{OracleOperation, YamlConfig}
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.source.{RichSourceFunction, SourceFunction}
 
-import scala.collection.mutable
-
-class RichSourceFromOracle extends RichSourceFunction[List[Map[String, String]]] {
+class RichSourceFromOracle extends RichSourceFunction[Map[String, String]] {
 
   var dbOperation: OracleOperation = _
 
+  var yamlConfig: YamlConfig = _
+
   override def open(parameters: Configuration) = {
+    yamlConfig = YamlConfig.load
     super.open(parameters)
     dbOperation = OracleOperation.openConnection
   }
 
-  override def run(ctx: SourceFunction.SourceContext[List[Map[String, String]]]) = {
-    val records = mutable.ListBuffer.empty[Map[String, String]]
-    val countSql = """select count(*) as count from emr_common_struct where length(itemvalue) > 32"""
-    val recordSql = """SELECT pkid,documentcode,itemtitle,itemvalue FROM emr_common_struct where length(itemvalue) > 32 and rownum > ? and rownum <= ?"""
-    val countRecord = dbOperation.executeQuerySql(countSql)()
-    val count = dbOperation.executeQuerySql(countSql)().head.get("count").get.toInt
-    var rowNum = 0
-    while (rowNum < count){
-      records ++= dbOperation.executeQuerySql(recordSql)(rowNum, rowNum + 1000)
-      ctx collect records.toList
-    }
+  override def run(ctx: SourceFunction.SourceContext[Map[String, String]]) = {
+    val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    var sd = LocalDate.parse(yamlConfig.startDate)
+    val sql = """select V.PKID as PKID,V.DOCUMENTCODE as DOCUMENTCODE,V.DOCUMENTDATA from V_EMR_DOCUMENTDATA V
+         where V.BUSINESSTIME BETWEEN to_date(?,'YYYY-MM-DD') AND to_date(?,'YYYY-MM-DD')"""
+    (0 to ChronoUnit.DAYS.between(sd, LocalDate.now).toInt).foreach(d =>
+      dbOperation.executeQuerySql(sql)(sd.plusDays(d).format(dateFormat), sd.plusDays(d+1).format(dateFormat)).foreach(ctx collect _))
   }
 
   override def cancel() = dbOperation.closeConnection
