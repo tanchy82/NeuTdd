@@ -1,34 +1,54 @@
 package com.oldtan.arithmetic
 
+import java.io.{File, RandomAccessFile}
+import java.nio.channels.FileChannel
+import java.nio.charset.StandardCharsets
+
+import com.oldtan.tools.YamlConfig
 import info.debatty.java.stringsimilarity.NGram
+import org.apache.flink.api.common.functions.RichMapFunction
 
 import scala.collection.mutable
 
-class TextSimilarityArithmetic {
+class TextSimilarityArithmetic extends RichMapFunction[Map[String, String], String]{
 
-  val dataCollection = mutable.ListBuffer.empty[Map[String, String]]
-
-  def calculate(subDataCollection: List[Map[String, String]]): String = {
-    val buffer = mutable.StringBuilder.newBuilder
-    var skipNum = 0
-    subDataCollection.foreach(f => {
-      skipNum += 1
-      buffer ++= loopCollection(f, subDataCollection.toIterable, skipNum)
-      buffer ++= loopCollection(f, dataCollection.toIterable,0)
-    })
-    dataCollection ++= subDataCollection
-    buffer.mkString
-  }
-
-  def loopCollection(f: Map[String, String], c: Iterable[Map[String, String]], s:Int):String ={
-    c.filter(f.get("pkid") != _.get("pkid"))
-      .filter(f2 => compare(f.get("itemvalue"), f2.get("itemvalue")) > 0.1)
-      .map(f2 => s"Text Similarity: ${f.get("pkid")} and ${f2.get("pkid")} \n").mkString
-  }
-
-  def compare(s1: Option[String], s2: Option[String]): Double ={
+  /** Compare two string return true is Similarity */
+  def compare(s1: String, s2: String): Boolean ={
     val ngram = new NGram(8)
-    ngram.distance(s1.get, s2.get)
+    ngram.distance(s1, s2)
+    if ((ngram.distance(s1, s2)) < 0.3) true else false
   }
 
+  val dir = new File(YamlConfig.load.writeFileDir)
+
+  override def map(data: Map[String, String]): String = {
+    val report = mutable.StringBuilder.newBuilder
+    data.get("documentcode")
+      .map(p => new File(s"${dir.getPath}/$p")).filter(_.isDirectory)
+      .map(d => d.listFiles).foreach(arr => {
+      arr.foreach(f => {
+        val iFile = new RandomAccessFile(f.getPath, "r")
+        val iChannel = iFile.getChannel
+        val m = iChannel.map(FileChannel.MapMode.READ_ONLY, 0, iChannel.size)
+        val dBuffer = StandardCharsets.UTF_8.newDecoder.decode(m)
+        val buffer = mutable.StringBuilder.newBuilder
+        try {
+          (0 until dBuffer.limit).map(dBuffer.get).foreach(c => {
+            c match {
+              case '\n' => {
+                val arr = buffer.toString.split(" ")
+                (0 until 1).filter(arr(_) != data.get("pkid").get)
+                  .map(_ => (data.get("documentdata").get, arr(2)))
+                  .foreach(t => if(compare(t._1, t._2)) report.append(s"$t\n"))
+              }
+              case _ => buffer += c.toChar
+            }
+          })
+        }finally {
+          iChannel.close; iFile.close
+        }
+      })
+    })
+    report.toString
+  }
 }

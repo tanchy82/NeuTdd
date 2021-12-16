@@ -1,14 +1,13 @@
 package com.oldtan.arithmetic
 
 import java.io.{File, RandomAccessFile}
-import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 
 import com.oldtan.tools.YamlConfig
 import org.apache.flink.api.common.functions.RichMapFunction
 import org.apache.flink.configuration.Configuration
 
-class WriteFile extends RichMapFunction[Map[String, String], String]{
+class WriteFile extends RichMapFunction[Map[String, String], Map[String, String]]{
 
   val dir = new File(YamlConfig.load.writeFileDir)
 
@@ -17,7 +16,7 @@ class WriteFile extends RichMapFunction[Map[String, String], String]{
     Option(dir).filter(!_.isDirectory).foreach(_.mkdir)
   }
 
-  override def map(data: Map[String, String]): String = {
+  override def map(data: Map[String, String]): Map[String, String] = {
     data.get("documentcode")
       .map(p => new File(s"${dir.getPath}/$p"))
       .map(d => {if(!d.isDirectory) d.mkdir;d})
@@ -31,12 +30,15 @@ class WriteFile extends RichMapFunction[Map[String, String], String]{
         val text = s"${data.get("pkid").get} ${data.get("documentcode").get} ${data.get("documentdata").get}"
         val bytes = if(oFile.length > 0) s"\n$text".getBytes("UTF-8") else text.getBytes("UTF-8")
         val m = oChannel.map(FileChannel.MapMode.READ_WRITE, oFile.length, bytes.length)
-        (m.limit - m.position - bytes.length) >= 0 match {
-          case true => m put bytes
-          case _ => {m.force;m.clear;m put bytes}
+        try{
+          (m.limit - m.position - bytes.length) >= 0 match {
+            case true => m put bytes
+            case _ => {m.force;m.clear;m put bytes}
+          }
+        }finally {
+          m.force; oChannel.close; oFile.close
         }
-        m.force; oChannel.close
     })
-    data.get("pkid").get
+    data
   }
 }

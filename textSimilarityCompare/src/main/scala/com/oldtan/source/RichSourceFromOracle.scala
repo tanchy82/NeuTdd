@@ -25,7 +25,7 @@ class RichSourceFromOracle extends RichSourceFunction[Map[String, String]] {
     var sd = LocalDate.parse(yamlConfig.startDate)
     val sql = """select V.PKID as PKID,V.DOCUMENTCODE as DOCUMENTCODE,V.DOCUMENTDATA from V_EMR_DOCUMENTDATA V
          where V.BUSINESSTIME BETWEEN to_date(?,'YYYY-MM-DD') AND to_date(?,'YYYY-MM-DD')"""
-    (0 to ChronoUnit.DAYS.between(sd, LocalDate.now).toInt).foreach(d =>
+    (0 to (ChronoUnit.DAYS.between(sd, LocalDate.parse("2020-11-01")).toInt, 30)).foreach(d =>
       dbOperation.executeQuerySql(sql)(sd.plusDays(d).format(dateFormat), sd.plusDays(d+1).format(dateFormat)).foreach(ctx collect _))
   }
 

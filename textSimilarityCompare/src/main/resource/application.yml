@@ -1,4 +1,0 @@
-dbConn:
-  url: jdbc:oracle:thin:@//10.101.37.145:1521/phispdb
-  name: phis_emr
-  password: phis_emr
