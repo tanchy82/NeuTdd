@@ -39,7 +39,7 @@ class TextSimilarityArithmetic extends RichMapFunction[Map[String, String], Stri
                 val arr = buffer.toString.split(" ")
                 (0 until 1).filter(arr(_) != data.get("pkid").get)
                   .map(_ => (data.get("documentdata").get, arr(2)))
-                  .foreach(t => if(compare(t._1, t._2)) report.append(s"$t\n"))
+                  .foreach(t => if(compare(t._1, t._2)) report.append(s"${(data.get("pkid").get, arr(0))}\n"))
               }
               case _ => buffer += c.toChar
             }

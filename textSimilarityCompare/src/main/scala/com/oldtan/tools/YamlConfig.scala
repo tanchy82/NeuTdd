@@ -13,9 +13,7 @@ object YamlConfig {
 
   def load: YamlConfig = Option(yaml) match {
       case None => {
-        yaml = new Yaml(new Constructor(classOf[YamlConfig]))
-          .load(Source.fromFile("/home/tanchy/software/IdeaProjects/NeuTdd/textSimilarityCompare/src/main/resources/application.yml").bufferedReader).asInstanceOf[YamlConfig]
-        //.load(Source.fromFile("/home/flink-1.13.3/mytask/conf/application.yml").bufferedReader).asInstanceOf[YamlConfig]
+        yaml = new Yaml(new Constructor(classOf[YamlConfig])).load(Source.fromResource("application.yml").bufferedReader).asInstanceOf[YamlConfig]
         yaml
       }
       case _ => yaml
