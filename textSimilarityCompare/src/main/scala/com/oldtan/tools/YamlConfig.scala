@@ -24,6 +24,7 @@ import scala.beans.BeanProperty
 class YamlConfig extends Serializable {
   @BeanProperty var dbConn: util.HashMap[String,String] = _
   @BeanProperty var startDate: String = _
+  @BeanProperty var endDate: String = _
   @BeanProperty var writeFileDir: String = _
   lazy val dbConn_url = dbConn.get("url")
   lazy val dbConn_name = dbConn.get("name")

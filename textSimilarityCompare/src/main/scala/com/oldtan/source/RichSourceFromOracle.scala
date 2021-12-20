@@ -22,10 +22,11 @@ class RichSourceFromOracle extends RichSourceFunction[Map[String, String]] {
 
   override def run(ctx: SourceFunction.SourceContext[Map[String, String]]) = {
     val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    var sd = LocalDate.parse(yamlConfig.startDate)
+    val sd = LocalDate.parse(yamlConfig.startDate)
+    val ed = if(yamlConfig.endDate.equalsIgnoreCase("now")) LocalDate.now else LocalDate.parse(yamlConfig.endDate)
     val sql = """select V.PKID as PKID,V.DOCUMENTCODE as DOCUMENTCODE,V.DOCUMENTDATA as DOCUMENTDATA from V_EMR_DOCUMENTDATA V
          where V.BUSINESSTIME BETWEEN to_date(?,'YYYY-MM-DD') AND to_date(?,'YYYY-MM-DD')"""
-    (0 to (ChronoUnit.DAYS.between(sd, LocalDate.now).toInt, 1)).foreach(d => {
+    (0 to (ChronoUnit.DAYS.between(sd, ed).toInt, 1)).foreach(d => {
       dbOperation.executeQuerySql(sql)(sd.plusDays(d).format(dateFormat), sd.plusDays(d+1).format(dateFormat)).foreach(ctx collect _)
       println(sd.plusDays(d).format(dateFormat))
     })

@@ -4,5 +4,5 @@ dbConn:
   password: phis_emr
 
 startDate: 2020-10-05
+endDate: 2021-02-05
 writeFileDir: /oracle/flink_temp/
-#writeFileDir: /home/tanchy/software/IdeaProjects/NeuTdd/textSimilarityCompare/src/main/resources/

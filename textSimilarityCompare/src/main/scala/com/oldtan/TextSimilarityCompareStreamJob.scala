@@ -8,6 +8,12 @@ import org.apache.flink.streaming.api.scala.{StreamExecutionEnvironment, _}
 object TextSimilarityCompareStreamJob extends App {
   val yamlConfig = YamlConfig.load
   val env = StreamExecutionEnvironment.getExecutionEnvironment
-  env.addSource(new RichSourceFromOracle).map(new WriteFile).map(new TextSimilarityArithmetic).print
+  env.addSource(new RichSourceFromOracle)
+    .map(new WriteFile).disableChaining.setParallelism(4)
+    .map(new TextSimilarityArithmetic)
+    .addSink(s => s match {
+      case Some(s) => print(s)
+      case _ =>
+    })
   env.execute
 }
