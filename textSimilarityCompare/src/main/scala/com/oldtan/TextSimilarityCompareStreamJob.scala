@@ -25,7 +25,7 @@ object TextSimilarityCompareStreamJob extends App {
   val yamlConfig = YamlConfig.load
   val env = StreamExecutionEnvironment.getExecutionEnvironment
   env.addSource(new RichSourceFromOracle)
-    .map(t => (t.pkId, t.code, SimhashAlgorithm.simhashCode(t.document)))
+    .map(t => (t._1, t._2, SimhashAlgorithm.simhashCode(t._3)))
     .keyBy(_._2)//.disableChaining.setParallelism(4)
     .map(new TextSimilarityRichMap)
     .addSink(s => s match {

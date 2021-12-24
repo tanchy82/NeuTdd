@@ -8,7 +8,7 @@ import com.oldtan.tools.{OracleOperation, YamlConfig}
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.source.{RichSourceFunction, SourceFunction}
 
-class RichSourceFromOracle extends RichSourceFunction[TextInstance] {
+class RichSourceFromOracle extends RichSourceFunction[(String,String,String)] {
 
   var dbOperation: OracleOperation = _
 
@@ -20,7 +20,7 @@ class RichSourceFromOracle extends RichSourceFunction[TextInstance] {
     dbOperation = OracleOperation.openConnection
   }
 
-  override def run(ctx: SourceFunction.SourceContext[TextInstance]) = {
+  override def run(ctx: SourceFunction.SourceContext[(String,String,String)]) = {
     val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val sd = LocalDate.parse(yamlConfig.startDate)
     val ed = if(yamlConfig.endDate.equalsIgnoreCase("now")) LocalDate.now else LocalDate.parse(yamlConfig.endDate)
@@ -28,7 +28,7 @@ class RichSourceFromOracle extends RichSourceFunction[TextInstance] {
          where V.BUSINESSTIME BETWEEN to_date(?,'YYYY-MM-DD') AND to_date(?,'YYYY-MM-DD')"""
     (0 to (ChronoUnit.DAYS.between(sd, ed).toInt, 1)).foreach(d => {
       dbOperation.executeQuerySql(sql)(sd.plusDays(d).format(dateFormat), sd.plusDays(d+1).format(dateFormat))
-        .foreach(m => ctx collect TextInstance(m.get("PKID").get,m.get("DOCUMENTCODE").get,m.get("DOCUMENTDATA").get))
+        .foreach(m => ctx collect (m.get("pkid").get,m.get("documentcode").get,m.get("documentdata").get))
       println(sd.plusDays(d).format(dateFormat))
     })
   }
@@ -38,4 +38,3 @@ class RichSourceFromOracle extends RichSourceFunction[TextInstance] {
   override def close() = dbOperation.closeConnection
 
 }
-case class TextInstance(pkId:String, code:String, document:String)
