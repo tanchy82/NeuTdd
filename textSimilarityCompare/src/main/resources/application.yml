@@ -5,4 +5,4 @@ dbConn:
 
 startDate: 2020-10-05
 endDate: 2021-02-05
-writeFileDir: /oracle/flink_temp/
+#writeFileDir: /oracle/flink_temp/
