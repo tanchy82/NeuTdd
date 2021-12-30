@@ -21,16 +21,20 @@ object TextSimilarityCompareStreamJob extends App {
   println(NLPTokenizer.analyze(b).toStringWithoutLabels)*/
 
 
-
-  val yamlConfig = YamlConfig.load
+  val c = collection.mutable.Buffer("Trump")
+  c += "hillary"
+  println(c)
+  val s = "ab"
+  s.toCharArray
+  /*val yamlConfig = YamlConfig.load
   val env = StreamExecutionEnvironment.getExecutionEnvironment
   env.addSource(new RichSourceFromOracle)
     .map(t => (t._1, t._2, SimhashAlgorithm.simhashCode(t._3)))
     .keyBy(_._2)//.disableChaining.setParallelism(4)
     .map(new TextSimilarityRichMap)
     .addSink(s => s match {
-      case Some(s) => print(s)
+      case Some(s) => println(s)
       case _ =>
-    })
-  env.execute
+    }).setParallelism(1)
+  env.execute*/
 }

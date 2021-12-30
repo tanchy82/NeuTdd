@@ -7,7 +7,7 @@ import com.hankcs.hanlp.tokenizer.NLPTokenizer
   */
 object SimhashAlgorithm {
 
-  val bits = 16
+  val bits = 64
 
   def simhashCode(text: String): String = {
     /** Step 1: text tokenizer return term list */

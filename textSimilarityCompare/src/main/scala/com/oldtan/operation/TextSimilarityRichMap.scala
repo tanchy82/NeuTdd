@@ -19,7 +19,8 @@ class TextSimilarityRichMap extends RichMapFunction[(String,String,String), Opti
     var opt = Option.empty[(String,String)]
     val it = lastState.get.asScala
     for (v <- it.toStream if opt.isEmpty){
-      if (SimhashAlgorithm.hammingDistance(d._3, v.hash)) opt = Option(d._1, v.pkid)
+      if (SimhashAlgorithm.hammingDistance(d._3, v.hash))
+        opt = Option(d._1, v.pkid)
     }
     lastState.add(DocumentHash(d._1,d._3))
     opt
