@@ -1,0 +1,52 @@
+#!/bin/bash
+
+sourceDir="/media/uos/33cac560-5ef8-437a-955f-f0ea2fd26cc6/migration/export_20220520-20220601/1"
+sourceDir2="/media/uos/33cac560-5ef8-437a-955f-f0ea2fd26cc6/migration/export_20220520-20220601"
+copyDirsFile="/mnt/nas/tar_0901/find2.txt"
+destDir="/mnt/nas/tar_0901"
+sl=${#sourceDir2}
+log="/tmp/log.txt"
+#### sourceDir  --> 源目录绝对路径
+#### sourceDir2 --> sourceDir目录的前缀
+#### destDir    --> 目的亩录绝对路径
+#### copyDirsFile --> 缓存源目录下所有子目录
+
+echo "$(date "+%Y-%m-%d %H:%M:%S") ~~ Copy files and dirs data handle task '$sourceDir' start ..." > $log
+find ${sourceDir} -type d > ${copyDirsFile}
+cat ${copyDirsFile} | while read line
+do
+  if [ "$line" != "$sourceDir" ]; then  
+    realDir=$destDir${line:$sl}
+    #test -d ${realDir} || mkdir -m 777 -p ${realDir}
+    mkdir -m 777 -p "${realDir}"
+    sTime=$(date "+%Y-%m-%d %H:%M:%S")
+    export copy_ii=0
+    find ${line} -maxdepth 1 | while read sFile
+    do
+      if [ -f ${sFile} ]; then
+        let copy_ii+=1;
+        echo $copy_ii
+        if (( $copy_ii > 7 )); then
+          wait
+          export copy_ii=0
+        fi
+      {
+        echo "Copy file from ${sFile} to ${realDir} " >> $log
+        cp $sFile "${realDir}"
+      } &
+      fi
+      
+      #####1 rsync modle
+      #rsync -av $sFile ${realDir} 
+      #####2 tar modle
+      #tar -f $sFile | pv | lz4- B4 | lz4 -d | tar -xf ${realDir}
+    
+      #####3 cp modle  
+      #cp $sFile ${realDir}	
+    done
+    eTime=$(date "+%Y-%m-%d %H:%M:%S")
+    echo "Copy dir from $line to ${realDir} , $sTime  $eTime "
+    echo "Copy dir from $line to ${realDir} , $sTime  $eTime " >> $log
+  fi 
+done
+echo "$(date "+%Y-%m-%d %H:%M:%S") ~~ Finish ~~~~" >> $log
